@@ -1,10 +1,22 @@
-import * as pdfjsLib from '../vendor/pdfjs/pdf.min.mjs';
-
 (() => {
   const pdfCache = new Map();
   const renderJobs = new WeakMap();
+  let pdfjsImportPromise = null;
 
-  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdfjs/pdf.worker.min.mjs', import.meta.url).href;
+  async function getPDFJS() {
+    if (!pdfjsImportPromise) {
+      pdfjsImportPromise = import('../vendor/pdfjs/6.5.438/pdf.min.mjs')
+        .then(pdfjsLib => {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdfjs/6.5.438/pdf.worker.min.mjs', import.meta.url).href;
+          return pdfjsLib;
+        })
+        .catch(error => {
+          pdfjsImportPromise = null;
+          throw error;
+        });
+    }
+    return pdfjsImportPromise;
+  }
 
   function message(text, className) {
     const element = document.createElement('div');
@@ -14,16 +26,36 @@ import * as pdfjsLib from '../vendor/pdfjs/pdf.min.mjs';
   }
 
   async function loadPDF(url) {
-    if (!pdfjsLib) throw new Error('O visualizador de PDF não carregou.');
-    if (!pdfCache.has(url)) {
-      const task = pdfjsLib.getDocument({ url, rangeChunkSize: 65536 });
-      const promise = task.promise.catch(error => {
-        pdfCache.delete(url);
-        throw error;
-      });
-      pdfCache.set(url, promise);
+    if (pdfCache.has(url)) {
+      const cached = pdfCache.get(url);
+      pdfCache.delete(url);
+      pdfCache.set(url, cached);
+      return cached;
     }
-    return pdfCache.get(url);
+
+    const promise = (async () => {
+      const pdfjsLib = await getPDFJS();
+      return pdfjsLib.getDocument({
+        url,
+        rangeChunkSize: 65536,
+        disableAutoFetch: true
+      }).promise;
+    })();
+    pdfCache.set(url, promise);
+
+    try {
+      const pdf = await promise;
+      while (pdfCache.size > 2) {
+        const [oldestUrl, oldestPromise] = pdfCache.entries().next().value;
+        if (oldestUrl === url) break;
+        pdfCache.delete(oldestUrl);
+        oldestPromise.then(oldDocument => oldDocument.destroy()).catch(() => {});
+      }
+      return pdf;
+    } catch (error) {
+      if (pdfCache.get(url) === promise) pdfCache.delete(url);
+      throw error;
+    }
   }
 
   async function renderPDFPage(pdfUrl, pageNumber, container) {
@@ -40,7 +72,7 @@ import * as pdfjsLib from '../vendor/pdfjs/pdf.min.mjs';
       const baseViewport = page.getViewport({ scale: 1 });
       const width = Math.max(1, container.clientWidth || 320);
       const height = Math.max(1, container.clientHeight || 480);
-      const outputScale = Math.min(window.devicePixelRatio || 1, 2);
+      const outputScale = Math.min(window.devicePixelRatio || 1, 1.5);
       const scale = Math.min(width / baseViewport.width, height / baseViewport.height);
       const viewport = page.getViewport({ scale });
       const canvas = document.createElement('canvas');

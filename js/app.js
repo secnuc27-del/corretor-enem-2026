@@ -794,6 +794,7 @@ function renderizarListaDocumentosOficiais(containerId, gabaritos, propriedadeAr
 }
 
 let observadorPreviaDocumento = null;
+let filaPreviaDocumentos = Promise.resolve();
 
 function agendarPreviaDocumento(pdfUrl, container) {
   if (!container) return;
@@ -802,8 +803,12 @@ function agendarPreviaDocumento(pdfUrl, container) {
     container.classList.add('pdf-preview-error');
     return;
   }
+  const renderizar = () => {
+    if (!container.isConnected) return Promise.resolve();
+    return window.renderPDFPage(pdfUrl, 1, container);
+  };
   if (!('IntersectionObserver' in window)) {
-    window.renderPDFPage(pdfUrl, 1, container);
+    filaPreviaDocumentos = filaPreviaDocumentos.then(renderizar).catch(() => {});
     return;
   }
   if (!observadorPreviaDocumento) {
@@ -811,9 +816,15 @@ function agendarPreviaDocumento(pdfUrl, container) {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         observadorPreviaDocumento.unobserve(entry.target);
-        window.renderPDFPage(entry.target.dataset.pdfUrl, 1, entry.target);
+        const alvo = entry.target;
+        filaPreviaDocumentos = filaPreviaDocumentos
+          .then(() => {
+            if (!alvo.isConnected) return null;
+            return window.renderPDFPage(alvo.dataset.pdfUrl, 1, alvo);
+          })
+          .catch(() => {});
       });
-    }, { rootMargin: '300px 0px' });
+    }, { rootMargin: '100px 0px' });
   }
   observadorPreviaDocumento.observe(container);
 }
