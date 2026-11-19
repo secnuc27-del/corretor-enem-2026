@@ -1758,6 +1758,63 @@ body.gabarito-modal-open { overflow: hidden; }
   .result-area-grid { grid-template-columns: 1fr; }
 }
 
+/* Low-power mobile rendering: keep state changes immediate and remove large blur/clip effects. */
+@media (max-width: 600px) {
+  #capaInicialScreen::before,
+  #capaInicialScreen::after { display: none; }
+  .capa-visual-glow { display: none; }
+  .capa-image-frame { box-shadow: 0 8px 24px rgba(0,0,0,.22); }
+
+  .selection-ambient,
+  body.selection-active .selection-ambient { transition: none; }
+  .selection-ambient-glow { display: none; animation: none; filter: none; mix-blend-mode: normal; }
+  .selection-ambient-wave {
+    inset: 0;
+    clip-path: none;
+    opacity: 1;
+    transition: none;
+    background: linear-gradient(140deg, color-mix(in srgb, var(--ambient-a, #0057a3) 14%, #101726), #090d16 72%);
+  }
+  .selection-ambient-wave.is-expanding { clip-path: none; opacity: 1; }
+  #selectionAmbient[data-mode="dual"] .selection-ambient-wave {
+    background: linear-gradient(125deg,
+      color-mix(in srgb, var(--ambient-a, #0057a3) 16%, #101726),
+      #090d16 52%,
+      color-mix(in srgb, var(--ambient-b, #d97706) 14%, #101726));
+  }
+
+  .app-header,
+  body.selection-active .app-header { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  body.selection-active .app-header { background: #101726; }
+  body.selection-active .config-card { background: #101726; box-shadow: 0 8px 20px rgba(0,0,0,.2); }
+
+  .mode-option-btn,
+  .day-option-btn,
+  .lang-btn,
+  .caderno-card,
+  .btn-primary-large,
+  .btn-iniciar-hero,
+  .alt-btn-circle,
+  .btn-nav-link { transition: none !important; }
+  .caderno-card:hover,
+  .caderno-card.selected { transform: none; }
+  .caderno-card.selected { box-shadow: inset 0 0 0 1px rgba(96,165,250,.35); }
+  .caderno-cover-svg-wrap,
+  .caderno-card.selected .caderno-cover-svg-wrap { filter: none; transform: none; transition: none; }
+  .header-mini-logo { box-shadow: none; }
+
+  .quiz-corretor-card,
+  #resultadoScreen .result-card { box-shadow: none; }
+  .dual-day-panel,
+  .area-stat-card,
+  .result-day-group,
+  .score-display-box,
+  .official-keys-panel,
+  .official-key-card,
+  .answers-detail-box { box-shadow: none; }
+  .gabarito-lightbox-backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; }
 }

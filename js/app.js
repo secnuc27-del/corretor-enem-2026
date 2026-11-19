@@ -238,6 +238,12 @@ function atualizarFundoCadernos() {
   fundo.style.setProperty('--ambient-a', corA);
   fundo.style.setProperty('--ambient-b', corB);
 
+  // O celular recebe a cor imediatamente; evita refazer layout e animar uma máscara de tela inteira.
+  if (window.matchMedia('(max-width: 600px)').matches) {
+    onda.classList.add('is-expanding');
+    return;
+  }
+
   const lado = Math.floor(Math.random() * 4);
   const ponto = Math.floor(16 + Math.random() * 68);
   const origem = [
