@@ -796,7 +796,12 @@ function renderizarListaDocumentosOficiais(containerId, gabaritos, propriedadeAr
 let observadorPreviaDocumento = null;
 
 function agendarPreviaDocumento(pdfUrl, container) {
-  if (!container || !window.renderPDFPage) return;
+  if (!container) return;
+  if (!window.renderPDFPage) {
+    container.textContent = 'Use “Abrir PDF” acima para ver o documento oficial.';
+    container.classList.add('pdf-preview-error');
+    return;
+  }
   if (!('IntersectionObserver' in window)) {
     window.renderPDFPage(pdfUrl, 1, container);
     return;
@@ -821,6 +826,10 @@ function abrirGabarito(pdfUrl, nome, gatilho) {
   const titulo = document.getElementById('gabaritoLightboxTitle');
   const link = document.getElementById('gabaritoLightboxOpen');
   if (!modal || !page || !titulo || !link) return;
+  if (!window.renderPDFPage) {
+    window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+    return;
+  }
 
   gatilhoGabaritoAtivo = gatilho || document.activeElement;
   titulo.textContent = nome;
