@@ -15,10 +15,9 @@ O Vercel gera HTTPS para os dominios configurados. Aguarde a validacao do domini
 
 Este diretorio ja esta inicializado na branch `main`, com um commit local pronto. Crie um repositorio vazio chamado `corretor-enem-2026` na conta `secnuc27-del`. Nao inicialize o repositorio remoto com README, `.gitignore` ou licenca.
 
-Depois, nesta pasta, execute:
+O remoto `origin` ja aponta para esse endereco. Depois de criar o repositorio vazio, nesta pasta execute:
 
 ```powershell
-git remote add origin https://github.com/secnuc27-del/corretor-enem-2026.git
 git push -u origin main
 ```
 
