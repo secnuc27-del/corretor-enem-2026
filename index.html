@@ -42,6 +42,9 @@
         <button type="button" class="btn-iniciar-hero" data-action="start-selection">
           Começar correção <span aria-hidden="true">→</span>
         </button>
+        <button type="button" class="btn-resume-correction hidden" id="btnContinuarRascunho" data-action="resume-correction">
+          Continuar correção <span aria-hidden="true">↗</span>
+        </button>
         <div class="capa-footer-note">Exame Nacional do Ensino Médio <span>·</span> Aplicação regular e acessibilidade</div>
       </div>
       <div class="capa-visual">
@@ -173,6 +176,8 @@
           <div class="quiz-counter-wrap">
             <span class="quiz-counter-caption">PROGRESSO</span>
             <span class="quiz-counter-text" id="progressoTexto">1 / 90</span>
+            <button type="button" class="quiz-return-result hidden" data-action="return-to-results">Voltar ao resultado</button>
+            <button type="button" class="quiz-accessibility-trigger" data-action="toggle-accessibility" aria-expanded="false" aria-controls="accessibilityPanel">Acessibilidade</button>
           </div>
         </div>
         <div class="quiz-mini-track" aria-hidden="true">
@@ -182,7 +187,7 @@
         <div class="q-centro-box">
           <div class="question-kicker"><span></span> ÁREA DA PROVA</div>
           <div class="q-label-sub" id="areaNomeDisplay">Linguagens, Códigos e suas Tecnologias</div>
-          <div class="q-numero-destaque">
+          <div class="q-numero-destaque" tabindex="-1" aria-live="polite">
             <span class="q-question-word">Questão</span>
             <span class="q-question-number" id="numeroQuestaoDisplay">1</span>
           </div>
@@ -216,7 +221,7 @@
 
         <div class="result-header">
           <p class="result-eyebrow">RESUMO DA SUA PROVA</p>
-          <h1 id="resultadoTitulo">Resultado da correção</h1>
+          <h1 id="resultadoTitulo" tabindex="-1">Resultado da correção</h1>
           <p id="resultadoSubtitulo">Veja o resumo de acertos do seu caderno.</p>
         </div>
 
@@ -275,9 +280,11 @@
         </details>
 
         <div class="result-actions">
+          <button type="button" class="btn-share-result" data-action="share-result">Compartilhar resultado <span aria-hidden="true">↗</span></button>
           <button type="button" class="btn-primary-large" data-action="back-selection">
             Corrigir outro caderno <span aria-hidden="true">→</span>
           </button>
+          <p class="share-result-status" id="shareResultStatus" role="status" aria-live="polite"></p>
         </div>
 
         <footer class="official-help-footer">
@@ -313,6 +320,30 @@
       <div class="gabarito-lightbox-page" id="gabaritoLightboxPage" role="img" aria-label="Página do documento oficial"></div>
     </section>
   </div>
+
+  <aside class="accessibility-widget" id="accessibilityWidget">
+    <section class="accessibility-panel hidden" id="accessibilityPanel" aria-labelledby="accessibilityTitle">
+      <div class="accessibility-panel-heading">
+        <div><span>PERSONALIZE A LEITURA</span><h2 id="accessibilityTitle">Acessibilidade</h2></div>
+        <button type="button" class="accessibility-close" data-action="close-accessibility" aria-label="Fechar acessibilidade">×</button>
+      </div>
+      <div class="accessibility-setting">
+        <span>Tamanho do texto</span>
+        <div class="accessibility-size-controls" role="group" aria-label="Tamanho do texto">
+          <button type="button" data-action="change-text-size" data-size-step="-1" aria-label="Diminuir texto">A−</button>
+          <button type="button" data-action="reset-text-size" aria-label="Restaurar tamanho padrão">A</button>
+          <button type="button" data-action="change-text-size" data-size-step="1" aria-label="Aumentar texto">A+</button>
+        </div>
+      </div>
+      <button type="button" class="accessibility-option" id="btnHighContrast" data-action="toggle-contrast" aria-pressed="false"><span>Alto contraste</span><span class="accessibility-switch" aria-hidden="true"></span></button>
+      <button type="button" class="accessibility-option" data-action="read-current-screen"><span>Ler esta tela em voz alta</span><span aria-hidden="true">◖</span></button>
+      <button type="button" class="accessibility-option" data-action="stop-reading"><span>Parar leitura</span><span aria-hidden="true">■</span></button>
+    </section>
+    <button type="button" class="accessibility-launcher" id="accessibilityLauncher" data-action="toggle-accessibility" aria-expanded="false" aria-controls="accessibilityPanel">
+      <span aria-hidden="true">A</span><span class="accessibility-launcher-label">Acessibilidade</span>
+    </button>
+  </aside>
+  <div class="sr-only" id="appLiveRegion" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Scripts -->
   <script src="js/gabaritos.js"></script>

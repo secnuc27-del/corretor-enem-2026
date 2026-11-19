@@ -19,6 +19,73 @@ let config = {
   gabarito: null          // Objeto com o gabarito oficial
 };
 
+const CHAVE_RASCUNHO_CORRECAO = 'enem-corrector-progress-v1';
+const CHAVE_ACESSIBILIDADE = 'enem-corrector-accessibility-v1';
+let retornandoAoResultado = false;
+let correcaoConcluida = false;
+let tamanhoTextoAcessivel = 0;
+let contrasteAcessivel = false;
+
+function lerRascunhoCorrecao() {
+  try {
+    const rascunho = JSON.parse(localStorage.getItem(CHAVE_RASCUNHO_CORRECAO) || 'null');
+    if (!rascunho || rascunho.version !== 1 || !['um', 'dois'].includes(rascunho.modoCorrecao)) return null;
+    if (!GABARITOS[rascunho.cadernoKey] || !GABARITOS[rascunho.cadernoDia1Key] || !GABARITOS[rascunho.cadernoDia2Key]) return null;
+    if (![1, 2].includes(rascunho.dia) || !['ingles', 'espanhol'].includes(rascunho.idioma)) return null;
+    if (!Number.isInteger(rascunho.indiceQuestao) || rascunho.indiceQuestao < 0 || rascunho.indiceQuestao > 179) return null;
+    return rascunho;
+  } catch (_) {
+    return null;
+  }
+}
+
+function limparRascunhoCorrecao() {
+  try { localStorage.removeItem(CHAVE_RASCUNHO_CORRECAO); } catch (_) { /* armazenamento indisponível */ }
+  atualizarBotaoRetomar();
+}
+
+function atualizarBotaoRetomar() {
+  const botao = document.getElementById('btnContinuarRascunho');
+  if (!botao) return;
+  const rascunho = lerRascunhoCorrecao();
+  botao.classList.toggle('hidden', !rascunho);
+  if (!rascunho) return;
+
+  const quantidade = rascunho.modoCorrecao === 'dois' ? 180 : 90;
+  const indice = Math.min(rascunho.indiceQuestao, quantidade - 1);
+  const numeroQuestao = rascunho.modoCorrecao === 'um' && rascunho.dia === 2 ? indice + 91 : indice + 1;
+  const respondidas = Object.values(rascunho.respostas || {}).filter(resposta => ['A', 'B', 'C', 'D', 'E', 'ANULADA'].includes(resposta) || resposta === '').length;
+  botao.innerHTML = `Continuar na questão ${numeroQuestao} <span aria-hidden="true">↗</span>`;
+  botao.setAttribute('aria-label', `Continuar correção na questão ${numeroQuestao}; ${respondidas} questões respondidas`);
+}
+
+function salvarRascunhoCorrecao() {
+  if (correcaoConcluida || retornandoAoResultado || !config.questoes.length) return;
+  const telaQuiz = document.getElementById('quizScreen');
+  if (!telaQuiz || telaQuiz.classList.contains('hidden')) return;
+
+  const respostas = {};
+  Object.entries(config.respostas).forEach(([numero, resposta]) => {
+    if (/^\d{1,3}$/.test(numero) && ['A', 'B', 'C', 'D', 'E', 'ANULADA', ''].includes(resposta)) respostas[numero] = resposta;
+  });
+  const rascunho = {
+    version: 1,
+    savedAt: Date.now(),
+    modoCorrecao: config.modoCorrecao,
+    dia: config.dia,
+    cadernoKey: config.cadernoKey,
+    cadernoDia1Key: config.cadernoDia1Key,
+    cadernoDia2Key: config.cadernoDia2Key,
+    idioma: config.idioma,
+    respostas,
+    indiceQuestao: config.indiceQuestao
+  };
+  try {
+    localStorage.setItem(CHAVE_RASCUNHO_CORRECAO, JSON.stringify(rascunho));
+    atualizarBotaoRetomar();
+  } catch (_) { /* modo privado o armazenamento pode estar indisponível */ }
+}
+
 // ============================================================
 //  TRANSIÇÕES DE TELA
 // ============================================================
@@ -387,7 +454,29 @@ function definirIdioma(idioma) {
 // ============================================================
 //  INICIAR CORREÇÃO
 // ============================================================
-function iniciarCorrecao() {
+function iniciarCorrecao(estadoSalvo = null) {
+  if (!estadoSalvo) {
+    const rascunhoExistente = lerRascunhoCorrecao();
+    if (rascunhoExistente) {
+      const continuar = window.confirm('Há uma correção salva neste aparelho. Deseja continuar de onde parou? Se escolher Cancelar, o progresso salvo será substituído pela nova correção.');
+      if (continuar) {
+        iniciarCorrecao(rascunhoExistente);
+        return;
+      }
+      limparRascunhoCorrecao();
+    }
+  } else {
+    config.modoCorrecao = estadoSalvo.modoCorrecao;
+    config.dia = estadoSalvo.dia;
+    config.cadernoKey = estadoSalvo.cadernoKey;
+    config.cadernoDia1Key = estadoSalvo.cadernoDia1Key;
+    config.cadernoDia2Key = estadoSalvo.cadernoDia2Key;
+    config.idioma = estadoSalvo.idioma;
+    definirModoCorrecao(config.modoCorrecao);
+    if (config.modoCorrecao === 'um') definirDia(config.dia);
+    definirIdioma(config.idioma);
+  }
+
   let inicio;
   let fim;
 
@@ -418,9 +507,20 @@ function iniciarCorrecao() {
   }
 
   config.respostas = {};
-  config.indiceQuestao = 0;
   config.questoes = [];
   for (let q = inicio; q <= fim; q++) config.questoes.push(q);
+  if (estadoSalvo) {
+    const numerosValidos = new Set(config.questoes.map(String));
+    Object.entries(estadoSalvo.respostas || {}).forEach(([numero, resposta]) => {
+      if (numerosValidos.has(numero) && ['A', 'B', 'C', 'D', 'E', 'ANULADA', ''].includes(resposta)) config.respostas[numero] = resposta;
+    });
+    config.indiceQuestao = Math.min(estadoSalvo.indiceQuestao, config.questoes.length - 1);
+  } else {
+    config.indiceQuestao = 0;
+  }
+  retornandoAoResultado = false;
+  correcaoConcluida = false;
+  document.querySelector('.quiz-return-result')?.classList.add('hidden');
 
   document.getElementById('configScreen').classList.add('hidden');
   document.getElementById('resultadoScreen').classList.add('hidden');
@@ -555,6 +655,9 @@ function exibirQuestao() {
   if (textoAvancar) {
     textoAvancar.textContent = config.indiceQuestao === config.questoes.length - 1 ? 'Ver resultado' : 'Próxima';
   }
+  const voltarResultado = document.querySelector('.quiz-return-result');
+  if (voltarResultado) voltarResultado.classList.toggle('hidden', !retornandoAoResultado);
+  salvarRascunhoCorrecao();
 }
 
 function renderizarApenasAlternativas(n, isAnulada) {
@@ -596,6 +699,7 @@ function clicarAlternativa(n, letra, btnClicado) {
     botaoEmBranco.classList.remove('selected');
     botaoEmBranco.setAttribute('aria-pressed', 'false');
   }
+  salvarRascunhoCorrecao();
 }
 function marcarEmBranco() {
   const n = config.questoes[config.indiceQuestao];
@@ -611,6 +715,7 @@ function marcarEmBranco() {
     botaoEmBranco.classList.add('selected');
     botaoEmBranco.setAttribute('aria-pressed', 'true');
   }
+  salvarRascunhoCorrecao();
 }
 function avancarQuestao() {
   const n = config.questoes[config.indiceQuestao];
@@ -631,6 +736,10 @@ function voltarQuestao() {
 }
 
 function concluirCorrecao() {
+  correcaoConcluida = true;
+  retornandoAoResultado = false;
+  document.querySelector('.quiz-return-result')?.classList.add('hidden');
+  limparRascunhoCorrecao();
   document.body.classList.remove('selection-active');
   document.body.classList.remove('quiz-active');
   document.getElementById('quizScreen').classList.add('hidden');
@@ -639,6 +748,38 @@ function concluirCorrecao() {
   if (mainHeader) mainHeader.classList.remove('hidden');
   window.scrollTo(0, 0);
   gerarRelatorioFinal();
+}
+
+function retomarCorrecao() {
+  const rascunho = lerRascunhoCorrecao();
+  if (rascunho) iniciarCorrecao(rascunho);
+}
+
+function revisarQuestaoDoResultado(numero) {
+  const indice = config.questoes.indexOf(numero);
+  if (indice < 0) return;
+  retornandoAoResultado = true;
+  config.indiceQuestao = indice;
+  document.getElementById('resultadoScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  document.body.classList.add('quiz-active');
+  document.body.classList.remove('selection-active');
+  document.getElementById('mainHeader')?.classList.add('hidden');
+  exibirQuestao();
+  document.querySelector('.q-numero-destaque')?.focus({ preventScroll: true });
+  window.scrollTo(0, 0);
+}
+
+function voltarAoResultado() {
+  if (!retornandoAoResultado) return;
+  retornandoAoResultado = false;
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultadoScreen').classList.remove('hidden');
+  document.body.classList.remove('quiz-active');
+  document.getElementById('mainHeader')?.classList.remove('hidden');
+  gerarRelatorioFinal();
+  document.getElementById('resultadoTitulo')?.focus({ preventScroll: true });
+  window.scrollTo(0, 0);
 }
 
 function gerarRelatorioFinal() {
@@ -874,7 +1015,10 @@ function fecharGabarito() {
 }
 
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') fecharGabarito();
+  if (event.key === 'Escape') {
+    fecharGabarito();
+    fecharPainelAcessibilidade();
+  }
 });
 
 function renderizarTabelaGabarito(lista, filtro = 'issues') {
@@ -934,7 +1078,7 @@ function renderizarTabelaGabarito(lista, filtro = 'issues') {
       const row = document.createElement('article');
       row.className = `answer-row ${classeStatus}`;
       row.innerHTML = `
-        <span class="answer-question-number">Q${item.n}</span>
+        <button type="button" class="answer-question-number" data-action="review-question" data-question-number="${item.n}" aria-label="Voltar à questão ${item.n}">Q${item.n}</button>
         <div class="answer-comparison">
           <span><small>Sua resposta</small><strong>${item.anulada ? '—' : item.marcada}</strong></span>
           <span><small>Gabarito</small><strong>${item.anulada ? 'Ponto garantido' : item.correta}</strong></span>
@@ -949,6 +1093,259 @@ function renderizarTabelaGabarito(lista, filtro = 'issues') {
   });
 }
 
+function compartilharResultado() {
+  const botao = document.querySelector('[data-action="share-result"]');
+  const status = document.getElementById('shareResultStatus');
+  const nomeAreas = [...document.querySelectorAll('.area-stat-card')].map(card => ({
+    nome: card.querySelector('.area-stat-name')?.textContent.trim() || '',
+    acertos: card.querySelector('.area-stat-score strong')?.textContent.trim() || '0',
+    total: card.querySelector('.area-stat-score span')?.textContent.replace('/', '').trim() || '45'
+  }));
+
+  if (!botao || !nomeAreas.length) return;
+  botao.disabled = true;
+  if (status) status.textContent = 'Preparando seu resumo…';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1350;
+  const contexto = canvas.getContext('2d');
+  if (!contexto) {
+    botao.disabled = false;
+    if (status) status.textContent = 'Não foi possível criar a imagem neste navegador.';
+    return;
+  }
+
+  const arredondar = (x, y, largura, altura, raio, cor) => {
+    contexto.beginPath();
+    if (typeof contexto.roundRect === 'function') contexto.roundRect(x, y, largura, altura, raio);
+    else {
+      contexto.moveTo(x + raio, y);
+      contexto.lineTo(x + largura - raio, y);
+      contexto.quadraticCurveTo(x + largura, y, x + largura, y + raio);
+      contexto.lineTo(x + largura, y + altura - raio);
+      contexto.quadraticCurveTo(x + largura, y + altura, x + largura - raio, y + altura);
+      contexto.lineTo(x + raio, y + altura);
+      contexto.quadraticCurveTo(x, y + altura, x, y + altura - raio);
+      contexto.lineTo(x, y + raio);
+      contexto.quadraticCurveTo(x, y, x + raio, y);
+    }
+    contexto.fillStyle = cor;
+    contexto.fill();
+  };
+  const quebrarLinha = (texto, x, y, larguraMaxima, alturaLinha, maxLinhas = 2) => {
+    const palavras = texto.split(/\s+/);
+    let linha = '';
+    let linhas = 0;
+    palavras.forEach(palavra => {
+      const teste = linha ? `${linha} ${palavra}` : palavra;
+      if (contexto.measureText(teste).width > larguraMaxima && linha) {
+        contexto.fillText(linha, x, y + linhas * alturaLinha);
+        linhas++;
+        linha = palavra;
+      } else linha = teste;
+    });
+    if (linha && linhas < maxLinhas) contexto.fillText(linha, x, y + linhas * alturaLinha);
+  };
+
+  const fundo = contexto.createLinearGradient(0, 0, 1080, 1350);
+  fundo.addColorStop(0, '#0b1830');
+  fundo.addColorStop(1, '#10284a');
+  contexto.fillStyle = fundo;
+  contexto.fillRect(0, 0, canvas.width, canvas.height);
+  contexto.fillStyle = '#34b8f2';
+  contexto.fillRect(0, 0, canvas.width, 14);
+  contexto.fillStyle = 'rgba(56,189,248,.12)';
+  contexto.beginPath();
+  contexto.arc(1010, 120, 245, 0, Math.PI * 2);
+  contexto.fill();
+
+  contexto.fillStyle = '#7dd3fc';
+  contexto.font = '800 27px system-ui, sans-serif';
+  contexto.fillText('ENEM 2026  ·  CORREÇÃO DE GABARITO', 76, 100);
+  contexto.fillStyle = '#ffffff';
+  contexto.font = '800 66px system-ui, sans-serif';
+  contexto.fillText('Meu desempenho', 76, 198);
+  contexto.fillStyle = '#c6d5e8';
+  contexto.font = '500 27px system-ui, sans-serif';
+  quebrarLinha(document.getElementById('resultadoSubtitulo')?.textContent || 'Resumo da minha correção', 76, 254, 900, 40, 2);
+
+  arredondar(66, 330, 948, 280, 30, '#f8fbff');
+  contexto.fillStyle = '#60758d';
+  contexto.font = '800 23px system-ui, sans-serif';
+  contexto.fillText('ACERTOS', 108, 394);
+  contexto.fillStyle = '#0f9b70';
+  contexto.font = '900 125px system-ui, sans-serif';
+  contexto.fillText(document.getElementById('scoreAcertosTotal')?.textContent.trim() || '0', 103, 535);
+  contexto.fillStyle = '#18304d';
+  contexto.font = '700 42px system-ui, sans-serif';
+  contexto.fillText(`/ ${document.getElementById('scoreTotalQuestoes')?.textContent.trim() || '90'}`, 300, 530);
+  arredondar(760, 390, 205, 150, 24, '#e7f6f0');
+  contexto.fillStyle = '#0b8f68';
+  contexto.textAlign = 'center';
+  contexto.font = '900 48px system-ui, sans-serif';
+  contexto.fillText(document.getElementById('scorePercentual')?.textContent.trim() || '0%', 862, 460);
+  contexto.fillStyle = '#416957';
+  contexto.font = '700 19px system-ui, sans-serif';
+  contexto.fillText('de acertos', 862, 498);
+  contexto.textAlign = 'left';
+
+  contexto.fillStyle = '#ddecfa';
+  contexto.font = '800 24px system-ui, sans-serif';
+  contexto.fillText('RESULTADO POR ÁREA', 78, 690);
+  nomeAreas.forEach((area, indice) => {
+    const y = 730 + indice * 116;
+    arredondar(66, y, 948, 96, 18, 'rgba(255,255,255,.08)');
+    contexto.fillStyle = '#ffffff';
+    contexto.font = '700 22px system-ui, sans-serif';
+    quebrarLinha(area.nome, 94, y + 36, 690, 25, 2);
+    contexto.fillStyle = '#9ed8fb';
+    contexto.textAlign = 'right';
+    contexto.font = '800 23px system-ui, sans-serif';
+    contexto.fillText(`${area.acertos} / ${area.total}`, 970, y + 56);
+    contexto.textAlign = 'left';
+  });
+
+  contexto.fillStyle = '#9fb3cb';
+  contexto.font = '600 21px system-ui, sans-serif';
+  contexto.fillText('Confira sua prova e corrija em', 76, 1240);
+  contexto.fillStyle = '#7dd3fc';
+  contexto.font = '800 23px system-ui, sans-serif';
+  contexto.fillText('corretor-enem-2026-siex.vercel.app', 76, 1281);
+
+  canvas.toBlob(async imagem => {
+    if (!imagem) {
+      botao.disabled = false;
+      if (status) status.textContent = 'Não foi possível criar a imagem. Tente novamente.';
+      return;
+    }
+    const arquivo = typeof File === 'function' ? new File([imagem], 'meu-resultado-enem.png', { type: 'image/png' }) : null;
+    try {
+      if (arquivo && navigator.share && navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+        await navigator.share({ files: [arquivo], title: 'Meu resultado ENEM', text: 'Confira meu resumo de correção do ENEM.' });
+        if (status) status.textContent = 'Imagem pronta para compartilhar.';
+      } else {
+        const url = URL.createObjectURL(imagem);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'meu-resultado-enem.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        if (status) status.textContent = 'Imagem baixada. Agora você pode compartilhar onde quiser.';
+      }
+    } catch (erro) {
+      if (status) status.textContent = erro?.name === 'AbortError' ? 'Compartilhamento cancelado.' : 'Não foi possível compartilhar agora. Tente baixar a imagem novamente.';
+    } finally {
+      botao.disabled = false;
+    }
+  }, 'image/png');
+}
+
+function obterPreferenciasAcessibilidade() {
+  try {
+    const preferencias = JSON.parse(localStorage.getItem(CHAVE_ACESSIBILIDADE) || '{}');
+    return {
+      tamanho: Number.isInteger(preferencias.tamanho) ? Math.max(0, Math.min(3, preferencias.tamanho)) : 1,
+      contraste: preferencias.contraste === true
+    };
+  } catch (_) {
+    return { tamanho: 1, contraste: false };
+  }
+}
+
+function salvarPreferenciasAcessibilidade() {
+  try { localStorage.setItem(CHAVE_ACESSIBILIDADE, JSON.stringify({ tamanho: tamanhoTextoAcessivel, contraste: contrasteAcessivel })); } catch (_) { /* preferências seguem ativas nesta sessão */ }
+}
+
+function aplicarPreferenciasAcessibilidade() {
+  const tamanhos = ['small', 'normal', 'large', 'xlarge'];
+  document.documentElement.dataset.accessTextSize = tamanhos[tamanhoTextoAcessivel] || 'normal';
+  document.body.classList.toggle('high-contrast', contrasteAcessivel);
+  const contraste = document.getElementById('btnHighContrast');
+  if (contraste) contraste.setAttribute('aria-pressed', String(contrasteAcessivel));
+}
+
+function inicializarPreferenciasAcessibilidade() {
+  const preferencias = obterPreferenciasAcessibilidade();
+  tamanhoTextoAcessivel = preferencias.tamanho;
+  contrasteAcessivel = preferencias.contraste;
+  aplicarPreferenciasAcessibilidade();
+}
+
+function ajustarTamanhoTexto(passo, redefinir = false) {
+  tamanhoTextoAcessivel = redefinir ? 1 : Math.max(0, Math.min(3, tamanhoTextoAcessivel + passo));
+  aplicarPreferenciasAcessibilidade();
+  salvarPreferenciasAcessibilidade();
+}
+
+function alternarAltoContraste() {
+  contrasteAcessivel = !contrasteAcessivel;
+  aplicarPreferenciasAcessibilidade();
+  salvarPreferenciasAcessibilidade();
+}
+
+function alternarPainelAcessibilidade() {
+  const painel = document.getElementById('accessibilityPanel');
+  const botoes = [...document.querySelectorAll('[data-action="toggle-accessibility"]')];
+  if (!painel || !botoes.length) return;
+  const abrir = painel.classList.contains('hidden');
+  painel.classList.toggle('hidden', !abrir);
+  botoes.forEach(botao => botao.setAttribute('aria-expanded', String(abrir)));
+  if (abrir) painel.querySelector('button')?.focus();
+}
+
+function fecharPainelAcessibilidade() {
+  document.getElementById('accessibilityPanel')?.classList.add('hidden');
+  const botoes = [...document.querySelectorAll('[data-action="toggle-accessibility"]')];
+  botoes.forEach(botao => botao.setAttribute('aria-expanded', 'false'));
+  botoes.find(botao => !botao.closest('.hidden') && getComputedStyle(botao).display !== 'none')?.focus();
+}
+
+function textoDaTelaAtual() {
+  if (!document.getElementById('capaInicialScreen').classList.contains('hidden')) {
+    return 'ENEM 2026. Correção de gabarito. Sua prova, seu resultado. ' + (document.querySelector('.capa-subtitle')?.textContent || 'Comece uma correção.');
+  }
+  if (!document.getElementById('quizScreen').classList.contains('hidden')) {
+    const numero = config.questoes[config.indiceQuestao];
+    const selecionada = config.respostas[numero];
+    const respostaTexto = selecionada === undefined ? 'Nenhuma resposta marcada.' : `Resposta marcada: ${selecionada === '' ? 'em branco' : selecionada}.`;
+    return `${document.getElementById('quizCadernoNome')?.textContent || ''}. ${document.getElementById('areaNomeDisplay')?.textContent || ''}. Questão ${numero}. Alternativas A, B, C, D e E. ${respostaTexto}`;
+  }
+  if (!document.getElementById('configScreen').classList.contains('hidden')) {
+    const modo = config.modoCorrecao === 'dois' ? 'Dois cadernos juntos' : (config.dia === 1 ? 'Primeiro dia' : 'Segundo dia');
+    const caderno = config.modoCorrecao === 'dois'
+      ? `${GABARITOS[config.cadernoDia1Key]?.nome || ''} e ${GABARITOS[config.cadernoDia2Key]?.nome || ''}`
+      : GABARITOS[config.cadernoKey]?.nome || 'Escolha um caderno';
+    return `Monte sua correção. ${modo}. ${caderno}. Escolha suas opções e pressione Abrir prova.`;
+  }
+  const total = document.getElementById('scoreAcertosTotal')?.textContent || '0';
+  const totalQuestoes = document.getElementById('scoreTotalQuestoes')?.textContent || '0';
+  const percentual = document.getElementById('scorePercentual')?.textContent || '0%';
+  const areas = [...document.querySelectorAll('.area-stat-card')].map(card => `${card.querySelector('.area-stat-name')?.textContent || ''}: ${card.querySelector('.area-stat-score strong')?.textContent || '0'} acertos`).join('. ');
+  return `Seu desempenho. ${total} acertos de ${totalQuestoes}, ${percentual}. ${areas}`;
+}
+
+function lerTelaAtualEmVozAlta() {
+  if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+    const regiao = document.getElementById('appLiveRegion');
+    if (regiao) regiao.textContent = 'A leitura em voz alta não está disponível neste navegador.';
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const fala = new SpeechSynthesisUtterance(textoDaTelaAtual());
+  fala.lang = 'pt-BR';
+  fala.rate = 0.96;
+  const vozPortugues = window.speechSynthesis.getVoices().find(voz => voz.lang.toLowerCase().startsWith('pt'));
+  if (vozPortugues) fala.voice = vozPortugues;
+  window.speechSynthesis.speak(fala);
+}
+
+function pararLeituraEmVozAlta() {
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
 document.addEventListener('click', event => {
   if (!(event.target instanceof Element)) return;
   const controle = event.target.closest('[data-action]');
@@ -961,10 +1358,24 @@ document.addEventListener('click', event => {
     case 'set-day': definirDia(Number(controle.dataset.day)); break;
     case 'set-language': definirIdioma(controle.dataset.language); break;
     case 'start-correction': iniciarCorrecao(); break;
+    case 'resume-correction': retomarCorrecao(); break;
     case 'previous-question': voltarQuestao(); break;
     case 'blank-question': marcarEmBranco(); break;
     case 'next-question': avancarQuestao(); break;
+    case 'return-to-results': voltarAoResultado(); break;
+    case 'review-question': revisarQuestaoDoResultado(Number(controle.dataset.questionNumber)); break;
     case 'back-selection': voltarParaSelecao(); break;
     case 'close-document': fecharGabarito(); break;
+    case 'share-result': compartilharResultado(); break;
+    case 'toggle-accessibility': alternarPainelAcessibilidade(); break;
+    case 'close-accessibility': fecharPainelAcessibilidade(); break;
+    case 'change-text-size': ajustarTamanhoTexto(Number(controle.dataset.sizeStep)); break;
+    case 'reset-text-size': ajustarTamanhoTexto(0, true); break;
+    case 'toggle-contrast': alternarAltoContraste(); break;
+    case 'read-current-screen': lerTelaAtualEmVozAlta(); break;
+    case 'stop-reading': pararLeituraEmVozAlta(); break;
   }
 });
+
+inicializarPreferenciasAcessibilidade();
+atualizarBotaoRetomar();
