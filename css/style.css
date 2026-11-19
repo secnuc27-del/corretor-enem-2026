@@ -1463,7 +1463,13 @@ body.gabarito-modal-open { overflow: hidden; }
 
 @media (max-width: 680px) {
   #resultadoScreen .result-card { margin: 12px auto 30px; padding: 24px 18px; border-radius: 20px; }
-  #resultadoScreen .result-layout { grid-template-columns: minmax(0, 1fr); }
+  #resultadoScreen .result-card { display: flex; flex-direction: column; }
+  #resultadoScreen .result-layout { display: contents; }
+  #resultadoScreen .result-score-column { order: 1; }
+  #resultadoScreen .answers-detail-box { order: 2; }
+  #resultadoScreen .result-actions { order: 3; }
+  #resultadoScreen .official-keys-panel { order: 4; }
+  #resultadoScreen .official-help-footer { order: 5; }
   .result-area-grid { grid-template-columns: 1fr; }
   .area-stat-name { max-width: 76%; }
   .score-display-box { padding: 18px; }
