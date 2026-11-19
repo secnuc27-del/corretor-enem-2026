@@ -1,0 +1,162 @@
+/* ============================================================
+   animations.css — Keyframes e micro-interações extras
+   ============================================================ */
+
+/* Pulso de seleção */
+@keyframes selectPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(37,99,235,0.6); }
+  70%  { box-shadow: 0 0 0 12px rgba(37,99,235,0); }
+  100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+}
+
+.pulse-select {
+  animation: selectPulse 0.5s ease;
+}
+
+/* Partículas de confetti ao finalizar */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10px) rotateZ(0deg);   opacity: 1; }
+  100% { transform: translateY(100vh) rotateZ(720deg); opacity: 0; }
+}
+
+.confetti-piece {
+  position: fixed;
+  top: -10px;
+  width: 10px;
+  height: 10px;
+  animation: confetti-fall linear forwards;
+  z-index: 999;
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+/* Shimmer loading */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg,
+    var(--surface) 25%,
+    var(--surface-2) 37%,
+    var(--surface) 63%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Glow pulsante no logo */
+@keyframes logoPulse {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(96,165,250,0.2)); }
+  50%       { filter: drop-shadow(0 0 40px rgba(96,165,250,0.5)); }
+}
+
+.logo-title {
+  animation: logoPulse 3s ease-in-out infinite;
+}
+
+/* Escala de entrada dos cards */
+@keyframes cardPop {
+  0%   { opacity: 0; transform: scale(0.8) translateY(20px); }
+  60%  { transform: scale(1.05) translateY(-3px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.card-pop {
+  animation: cardPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Neon glow ao selecionar alternativa */
+@keyframes neonFlash {
+  0%   { box-shadow: 0 0 5px var(--blue-light), 0 0 10px var(--blue-light); }
+  50%  { box-shadow: 0 0 20px var(--blue-light), 0 0 40px var(--blue-light); }
+  100% { box-shadow: 0 0 10px rgba(37,99,235,0.3); }
+}
+
+.neon-flash {
+  animation: neonFlash 0.4s ease;
+}
+
+/* Texto digitando */
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+@keyframes blink-cursor {
+  0%, 100% { border-right-color: var(--blue-light); }
+  50%       { border-right-color: transparent; }
+}
+
+/* Levitar botão */
+@keyframes levitate {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+.levitate {
+  animation: levitate 2.5s ease-in-out infinite;
+}
+
+/* Rotação suave de ícone */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+.spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Fade in up com delay variável */
+.anim-delay-1 { animation-delay: 0.1s; }
+.anim-delay-2 { animation-delay: 0.2s; }
+.anim-delay-3 { animation-delay: 0.3s; }
+.anim-delay-4 { animation-delay: 0.4s; }
+.anim-delay-5 { animation-delay: 0.5s; }
+.anim-delay-6 { animation-delay: 0.6s; }
+
+/* Orb de brilho decorativo */
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1);     opacity: 0.3; }
+  33%       { transform: translate(30px, -20px) scale(1.1); opacity: 0.5; }
+  66%       { transform: translate(-20px, 10px) scale(0.9); opacity: 0.2; }
+}
+
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbFloat linear infinite;
+}
+
+.orb-blue {
+  width: 400px;
+  height: 400px;
+  background: rgba(37,99,235,0.15);
+  top: -100px;
+  left: -100px;
+  animation-duration: 15s;
+}
+
+.orb-green {
+  width: 300px;
+  height: 300px;
+  background: rgba(5,150,105,0.12);
+  bottom: -80px;
+  right: -60px;
+  animation-duration: 18s;
+  animation-delay: -6s;
+}
+
+.orb-purple {
+  width: 250px;
+  height: 250px;
+  background: rgba(124,58,237,0.1);
+  top: 50%;
+  right: -50px;
+  animation-duration: 20s;
+  animation-delay: -10s;
+}

@@ -1,0 +1,26 @@
+CORRETOR ENEM 2026 - INICIALIZACAO SEGURA
+=========================================
+
+1. Inicie o site pelo arquivo INICIAR_SITE.bat (ou ABRIR_SITE.bat).
+2. Acesse http://127.0.0.1:3000 no navegador.
+3. Para encerrar, pressione CTRL+C na janela do servidor.
+
+O servidor escuta apenas no proprio computador, serve somente os arquivos
+publicos do site, aceita apenas GET/HEAD e aplica cabecalhos de seguranca.
+Nao abra index.html diretamente e nao use servidores alternativos como
+Python http.server ou Live Server, pois eles nao aplicam esses cabecalhos.
+
+Este projeto e um site estatico: nao possui banco de dados, contas ou API.
+As respostas ficam apenas na memoria da pagina durante a sessao.
+
+Se publicar o site na internet, use HTTPS no provedor de hospedagem e configure
+os cabecalhos de seguranca tambem no servidor publico. O servidor local nao
+fornece criptografia TLS para conexoes externas.
+
+O arquivo _headers contem uma politica de seguranca para provedores estaticos
+que aceitam esse formato. Confirme a configuracao do seu provedor e ative o
+redirecionamento HTTP para HTTPS antes de divulgar o endereco.
+
+O site nao tem banco de dados, login ou campos de texto para injetar comandos.
+As respostas sao corrigidas no proprio navegador. F12 nao e bloqueado porque
+esse tipo de bloqueio pode ser contornado e nao protege os dados do site.

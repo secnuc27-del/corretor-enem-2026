@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a101d">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'self'; form-action 'self';">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <title>ENEM 2026 — Corretor de Provas</title>
+
+
+  <!-- Estilos principais -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="selection-ambient" id="selectionAmbient" aria-hidden="true" data-mode="single">
+    <div class="selection-ambient-base"></div>
+    <div class="selection-ambient-glow ambient-glow-a"></div>
+    <div class="selection-ambient-glow ambient-glow-b"></div>
+    <div class="selection-ambient-wave" id="selectionAmbientWave"></div>
+  </div>
+
+  <!-- ============================================================
+       TELA 0: CAPA DE ENTRADA (LANDING HERO COM LOGO ENEM)
+       ============================================================ -->
+  <section class="screen cover-screen" id="capaInicialScreen">
+    <div class="capa-hero-container">
+      <div class="capa-copy">
+        <div class="capa-eyebrow"><span class="capa-eyebrow-dot"></span> ENEM 2026 <span class="capa-eyebrow-divider">/</span> CORREÇÃO DE GABARITO</div>
+        <h1 class="capa-main-title">Sua prova.<br><span>Seu resultado.</span></h1>
+        <p class="capa-subtitle">
+          Confira suas respostas questão por questão, com os cadernos dos dois dias e a prova aberta ao seu lado.
+        </p>
+        <div class="capa-features-row" aria-label="Recursos disponíveis">
+          <div class="capa-feat-pill"><span class="capa-feature-index">01</span><span>1º e 2º dia</span></div>
+          <div class="capa-feat-pill"><span class="capa-feature-index">12</span><span>cadernos disponíveis</span></div>
+          <div class="capa-feat-pill"><span class="capa-feature-index">✓</span><span>resultado instantâneo</span></div>
+        </div>
+        <button type="button" class="btn-iniciar-hero" data-action="start-selection">
+          Começar correção <span aria-hidden="true">→</span>
+        </button>
+        <div class="capa-footer-note">Exame Nacional do Ensino Médio <span>·</span> Aplicação regular e acessibilidade</div>
+      </div>
+      <div class="capa-visual">
+        <div class="capa-visual-glow" aria-hidden="true"></div>
+        <div class="capa-image-frame">
+          <img src="assets/logo-enem.webp" alt="ENEM em um celular, com a marca do INEP ao fundo" class="enem-main-logo">
+          <div class="capa-image-caption"><span class="capa-caption-mark">E</span><span><strong>ENEM 2026</strong><small>Do gabarito ao resultado</small></span></div>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+  <div class="page-transition-layer" id="pageTransitionLayer" aria-hidden="true"></div>
+
+  <!-- Topo Institucional (aparece a partir da seleção) -->
+  <header class="app-header hidden" id="mainHeader">
+    <div class="header-container">
+      <div class="brand-wrap">
+        <img src="assets/logo-enem.webp" alt="ENEM" class="header-mini-logo">
+        <div class="brand-copy">
+          <div class="brand-title">Corretor <span class="brand-year">2026</span></div>
+          <div class="brand-caption">Correção de gabarito</div>
+        </div>
+      </div>
+      <button type="button" class="btn-trocar-caderno" data-action="back-cover">
+        ⌂ Início
+      </button>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="main-wrapper hidden" id="mainContentWrapper">
+
+    <!-- ============================================================
+         TELA 1: SELEÇÃO DO CADERNO E COR (COM CAPAS ILUSTRADAS)
+         ============================================================ -->
+    <div class="screen" id="configScreen">
+      <div class="config-card">
+        <div class="section-headline">
+          <span class="section-kicker">PERSONALIZE SUA SESSÃO</span>
+          <h2>Monte sua correção</h2>
+          <p>Escolha um dia ou faça os dois em uma única sessão.</p>
+        </div>
+
+        <div class="step-group mode-step-group">
+          <div class="step-label"><span class="step-number">1</span> Como quer corrigir?</div>
+          <div class="mode-selector" role="group" aria-label="Modo de correção">
+            <button type="button" class="mode-option-btn selected" id="btnModoIndividual" aria-pressed="true" data-action="set-mode" data-mode="um">
+              <span class="mode-option-mark">01</span>
+              <span class="mode-option-copy"><strong>Um caderno</strong><small>Corrigir uma prova · 90 questões</small></span>
+              <span class="mode-option-radio" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="mode-option-btn" id="btnModoDuplo" aria-pressed="false" data-action="set-mode" data-mode="dois">
+              <span class="mode-option-mark mode-option-mark-double">01<br>02</span>
+              <span class="mode-option-copy"><strong>Dois cadernos juntos</strong><small>Um do 1º dia + um do 2º · 180 questões</small></span>
+              <span class="mode-option-radio" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+
+        <div id="modoIndividualArea">
+          <div class="step-group">
+            <div class="step-label"><span class="step-number">2</span> Dia do exame</div>
+            <div class="day-selector">
+              <button type="button" class="day-option-btn selected" id="btnDia1" data-action="set-day" data-day="1">
+                <span class="day-btn-title">📘 1º Dia</span>
+                <span class="day-btn-desc">Linguagens e Humanas · questões 1–90</span>
+              </button>
+              <button type="button" class="day-option-btn" id="btnDia2" data-action="set-day" data-day="2">
+                <span class="day-btn-title">📙 2º Dia</span>
+                <span class="day-btn-desc">Natureza e Matemática · questões 91–180</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="step-group">
+            <div class="step-label"><span class="step-number">3</span> Caderno e cor</div>
+            <div class="cadernos-grid" id="cadernosGrid"></div>
+          </div>
+        </div>
+
+        <div class="dual-day-layout hidden" id="modoDoisDiasArea">
+          <section class="dual-day-panel" aria-labelledby="dia1PainelTitulo">
+            <div class="dual-day-heading">
+              <span class="dual-day-number">01</span>
+              <span><strong id="dia1PainelTitulo">Caderno do 1º dia</strong><small>Linguagens e Ciências Humanas</small></span>
+            </div>
+            <div class="dual-cadernos-grid" id="cadernosDia1Grid"></div>
+          </section>
+          <section class="dual-day-panel" aria-labelledby="dia2PainelTitulo">
+            <div class="dual-day-heading">
+              <span class="dual-day-number dual-day-number-two">02</span>
+              <span><strong id="dia2PainelTitulo">Caderno do 2º dia</strong><small>Ciências da Natureza e Matemática</small></span>
+            </div>
+            <div class="dual-cadernos-grid" id="cadernosDia2Grid"></div>
+          </section>
+        </div>
+
+        <div class="step-group language-step-group" id="grupoIdioma">
+          <div class="step-label"><span class="step-number">4</span> Língua estrangeira do 1º dia</div>
+          <div class="lang-selector">
+            <button type="button" class="lang-btn selected" id="btnIngles" data-action="set-language" data-language="ingles">
+              <span class="lang-flag">🇬🇧</span><span>Inglês · questões 1–5</span>
+            </button>
+            <button type="button" class="lang-btn" id="btnEspanhol" data-action="set-language" data-language="espanhol">
+              <span class="lang-flag">🇪🇸</span><span>Espanhol · questões 1–5</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="start-action-row">
+          <button type="button" class="btn-primary-large" id="btnIniciar" data-action="start-correction">
+            Abrir prova e iniciar →
+          </button>
+          <p class="start-action-note" id="startActionNote">Você poderá revisar suas respostas antes de finalizar.</p>
+        </div>
+      </div>
+    </div>
+    <!-- ============================================================
+         TELA 2: SÓ O NÚMERO DA QUESTÃO E AS ALTERNATIVAS EM BAIXO
+         ============================================================ -->
+    <div class="screen hidden" id="quizScreen">
+      <div class="quiz-corretor-card">
+        <div class="quiz-card-topbar">
+          <div class="quiz-session-info">
+            <span class="quiz-session-mark" aria-hidden="true">ENEM</span>
+            <span class="quiz-caderno-badge" id="quizCadernoNome">1º Dia · Caderno 1 · Azul</span>
+          </div>
+          <div class="quiz-counter-wrap">
+            <span class="quiz-counter-caption">PROGRESSO</span>
+            <span class="quiz-counter-text" id="progressoTexto">1 / 90</span>
+          </div>
+        </div>
+        <div class="quiz-mini-track" aria-hidden="true">
+          <div class="quiz-mini-fill" id="quizMiniBarra"></div>
+        </div>
+
+        <div class="q-centro-box">
+          <div class="question-kicker"><span></span> ÁREA DA PROVA</div>
+          <div class="q-label-sub" id="areaNomeDisplay">Linguagens, Códigos e suas Tecnologias</div>
+          <div class="q-numero-destaque">
+            <span class="q-question-word">Questão</span>
+            <span class="q-question-number" id="numeroQuestaoDisplay">1</span>
+          </div>
+          <div id="qBadgeInfo" class="q-anulada-tag" style="display:none;"></div>
+        </div>
+
+        <div class="answer-section-heading">
+          <span class="answer-section-title">Marque sua resposta</span>
+          <span class="answer-section-hint">Marque uma alternativa ou deixe em branco; avance quando quiser.</span>
+        </div>
+        <div class="alt-circle-row" id="alternativasContainer" role="group" aria-label="Alternativas da questão"></div>
+
+        <div class="quiz-nav-simples">
+          <button type="button" class="btn-nav-link" id="btnVoltarQuestao" data-action="previous-question">
+            <span class="nav-arrow" aria-hidden="true">←</span><span>Voltar</span>
+          </button>
+          <button type="button" class="btn-nav-link btn-nav-blank" data-action="blank-question">
+            <span class="nav-blank-mark" aria-hidden="true">—</span><span>Deixar em branco</span>
+          </button>
+          <button type="button" class="btn-nav-link btn-nav-next" id="btnPularQuestao" data-action="next-question">
+            <span id="textoBotaoAvancar">Próxima</span><span class="nav-arrow" aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- ============================================================
+         TELA 3: RESULTADO DETALHADO
+         ============================================================ -->
+    <div class="screen hidden" id="resultadoScreen">
+      <div class="result-card">
+
+        <div class="result-header">
+          <p class="result-eyebrow">RESUMO DA SUA PROVA</p>
+          <h1 id="resultadoTitulo">Resultado da correção</h1>
+          <p id="resultadoSubtitulo">Veja o resumo de acertos do seu caderno.</p>
+        </div>
+
+        <div class="result-layout">
+          <div class="result-score-column">
+            <div class="area-results-list" id="listaResultadosArea"></div>
+
+            <section class="score-display-box" aria-label="Resultado geral da prova">
+              <div class="score-overall-copy">
+                <span class="score-eyebrow">RESULTADO GERAL</span>
+                <div class="score-total-line">
+                  <span class="score-number-big" id="scoreAcertosTotal">0</span>
+                  <span class="score-total-divider">/</span>
+                  <span class="score-total-questions" id="scoreTotalQuestoes">90</span>
+                </div>
+                <div class="score-subtitle" id="scoreTotalRotulo">acertos no total</div>
+            </div>
+              <div class="score-percent-badge">
+                <strong id="scorePercentual">0%</strong>
+                <span>de acertos</span>
+              </div>
+            </section>
+          </div>
+
+          <aside class="official-keys-panel" aria-labelledby="officialKeysTitle">
+            <div class="official-keys-heading">
+              <span class="official-keys-icon" aria-hidden="true">✓</span>
+              <div>
+                <h2 id="officialKeysTitle">Documentos oficiais</h2>
+                <p>Confira o gabarito e o caderno da sua prova</p>
+              </div>
+            </div>
+            <section class="official-document-group" aria-labelledby="officialAnswerTitle">
+              <div class="official-document-heading"><span>01</span><h3 id="officialAnswerTitle">Gabarito oficial</h3></div>
+              <div class="official-key-cards" id="officialKeyCards"></div>
+            </section>
+            <section class="official-document-group" aria-labelledby="officialExamTitle">
+              <div class="official-document-heading"><span>02</span><h3 id="officialExamTitle">Caderno de questões</h3></div>
+              <div class="official-key-cards" id="officialExamCards"></div>
+            </section>
+          </aside>
+        </div>
+
+        <details class="answers-detail-box">
+          <summary>
+            <span>Revisar respostas</span>
+            <span class="review-summary-meta"><span id="reviewErradasResumo">0</span> para revisar</span>
+          </summary>
+          <div class="review-filters" role="group" aria-label="Filtrar questões">
+            <button type="button" class="review-filter is-active" data-review-filter="issues" aria-pressed="true">Erradas e em branco <span id="reviewCountIssues">0</span></button>
+            <button type="button" class="review-filter" data-review-filter="wrong" aria-pressed="false">Erradas <span id="reviewCountWrong">0</span></button>
+            <button type="button" class="review-filter" data-review-filter="blank" aria-pressed="false">Em branco <span id="reviewCountBlank">0</span></button>
+            <button type="button" class="review-filter" data-review-filter="all" aria-pressed="false">Todas <span id="reviewCountAll">0</span></button>
+          </div>
+          <div class="answers-table" id="tabelaGabaritoCompleto"></div>
+        </details>
+
+        <div class="result-actions">
+          <button type="button" class="btn-primary-large" data-action="back-selection">
+            Corrigir outro caderno <span aria-hidden="true">→</span>
+          </button>
+        </div>
+
+        <footer class="official-help-footer">
+          <div class="official-help-mark" aria-hidden="true">?</div>
+          <div class="official-help-copy">
+            <h2>Ficou com alguma dúvida?</h2>
+            <p>Consulte as informações e os documentos diretamente nas páginas oficiais do Inep.</p>
+          </div>
+          <div class="official-help-links">
+            <a href="https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos" target="_blank" rel="noopener noreferrer">Provas e gabaritos <span aria-hidden="true">↗</span></a>
+            <a href="https://www.gov.br/inep/pt-br/acesso-a-informacao/perguntas-frequentes/exame-nacional-do-ensino-medio-enem" target="_blank" rel="noopener noreferrer">Dúvidas frequentes <span aria-hidden="true">↗</span></a>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+
+  </main>
+
+  <div class="gabarito-lightbox hidden" id="gabaritoLightbox" role="dialog" aria-modal="true" aria-labelledby="gabaritoLightboxTitle">
+    <button type="button" class="gabarito-lightbox-backdrop" aria-label="Fechar visualização do documento" data-action="close-document"></button>
+    <section class="gabarito-lightbox-window">
+      <header class="gabarito-lightbox-header">
+        <div>
+          <span>DOCUMENTO OFICIAL</span>
+          <h2 id="gabaritoLightboxTitle">Gabarito oficial</h2>
+        </div>
+        <div class="gabarito-lightbox-actions">
+          <a id="gabaritoLightboxOpen" href="#" target="_blank" rel="noopener noreferrer">Abrir PDF ↗</a>
+          <button type="button" class="gabarito-lightbox-close" data-action="close-document" aria-label="Sair da visualização do documento"><span aria-hidden="true">×</span> Fechar</button>
+        </div>
+      </header>
+      <iframe class="gabarito-lightbox-frame" id="gabaritoLightboxFrame" title="Prévia ampliada do gabarito oficial"></iframe>
+    </section>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/gabaritos.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
