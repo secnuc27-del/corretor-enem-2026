@@ -1369,10 +1369,15 @@ body.selection-active .config-card {
 .official-key-card-header strong { grid-column: 1 / -1; overflow: hidden; color: #293d56; font-size: .7rem; font-weight: 800; line-height: 1.45; text-overflow: ellipsis; }
 .official-key-card-header a { grid-column: 2; grid-row: 1; justify-self: end; color: #226da9; font-size: .62rem; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .official-key-card-header a:hover { color: #0d4f83; text-decoration: underline; }
-.official-key-preview { position: relative; overflow: hidden; border-top: 1px solid #e5eaf0; background: #e9eef4; }
-.official-key-frame { display: block; width: 100%; height: clamp(360px, 39vw, 520px); border: 0; background: #e9eef4; pointer-events: none; }
-.official-key-cards.is-dual .official-key-preview { aspect-ratio: .72; max-height: 355px; }
-.official-key-cards.is-dual .official-key-frame { height: 100%; }
+.official-key-preview { position: relative; height: clamp(360px, 39vw, 520px); overflow: hidden; border-top: 1px solid #e5eaf0; background: #e9eef4; }
+.official-key-cards.is-dual .official-key-preview { height: auto; aspect-ratio: .72; max-height: 355px; }
+.official-key-canvas-host { position: absolute; inset: 0; display: grid; overflow: hidden; place-items: center; background: linear-gradient(145deg, #f4f7fa, #e7edf4); }
+.official-key-canvas-host canvas, .gabarito-lightbox-page canvas { display: block; max-width: 100%; max-height: 100%; object-fit: contain; background: #fff; box-shadow: 0 4px 18px rgba(18, 36, 59, .13); }
+.official-key-cards.is-dual .official-key-canvas-host { height: 100%; }
+.pdf-preview-loading, .pdf-preview-error { max-width: 250px; padding: 14px; color: #708096; font-size: .72rem; font-weight: 650; line-height: 1.5; text-align: center; }
+.pdf-preview-loading::before { content: ""; display: block; width: 22px; height: 22px; margin: 0 auto 9px; border: 2px solid #d1dbe6; border-top-color: #2384bc; border-radius: 50%; animation: preview-spin .8s linear infinite; }
+.pdf-preview-error { color: #6b7280; }
+@keyframes preview-spin { to { transform: rotate(360deg); } }
 .official-key-preview-trigger { position: absolute; inset: 0; display: grid; width: 100%; height: 100%; place-items: end center; padding: 14px; border: 0; background: transparent; cursor: zoom-in; }
 .official-key-preview-trigger > span { padding: 8px 11px; border: 1px solid rgba(255,255,255,.3); border-radius: 99px; background: rgba(15, 31, 49, .86); color: #fff; font-size: .66rem; font-weight: 800; box-shadow: 0 4px 14px rgba(0,0,0,.2); transition: transform .16s ease, background .16s ease; }
 .official-key-preview-trigger:hover > span { transform: translateY(-2px); background: #102b46; }
@@ -1393,7 +1398,7 @@ body.gabarito-modal-open { overflow: hidden; }
 .gabarito-lightbox-close { display: inline-flex; align-items: center; gap: 6px; min-height: 37px; padding: 0 12px; border: 1px solid #d5dee8; border-radius: 9px; background: #f4f7fa; color: #2f4056; font: inherit; font-size: .7rem; font-weight: 800; cursor: pointer; }
 .gabarito-lightbox-close:hover { border-color: #c4d2e0; background: #eaf0f6; }
 .gabarito-lightbox-close span { font-size: 1.1rem; line-height: 1; }
-.gabarito-lightbox-frame { display: block; flex: 1 1 auto; width: 100%; min-height: 0; border: 0; background: #252525; }
+.gabarito-lightbox-page { display: flex; flex: 1 1 auto; min-height: 0; width: 100%; align-items: center; justify-content: center; overflow: auto; padding: 12px; background: #252525; }
 .official-help-footer { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 13px; margin-top: 28px; padding: 18px 20px; border: 1px solid #dce5ef; border-radius: 16px; background: linear-gradient(110deg, #f4f8fc, #fff); }
 .official-help-mark { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #d2e3f2; border-radius: 11px; background: #eaf4fc; color: #286b9f; font-size: .95rem; font-weight: 900; }
 .official-help-copy h2 { color: #243850; font-size: .82rem; font-weight: 850; }
@@ -1465,7 +1470,6 @@ body.gabarito-modal-open { overflow: hidden; }
   .score-display-box { padding: 18px; }
   .score-percent-badge { min-width: 88px; padding: 10px 12px; }
   .official-keys-panel { padding: 15px; }
-  .official-key-frame { height: min(76vh, 560px); }
   .official-key-cards.is-dual .official-key-preview { max-height: min(68vh, 470px); }
   .gabarito-lightbox { padding: 8px; }
   .gabarito-lightbox-window { height: 96svh; border-radius: 13px; }
@@ -1618,10 +1622,9 @@ body.gabarito-modal-open { overflow: hidden; }
   .score-percent-badge strong { font-size: 1.18rem; }
   .score-percent-badge span { font-size: .56rem; }
   .official-keys-panel { padding: 12px; border-radius: 16px; }
-  .official-key-cards.is-dual { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .official-key-cards.is-dual .official-key-preview { aspect-ratio: .76; max-height: 235px; }
+  .official-key-cards.is-dual { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .official-key-cards.is-dual .official-key-preview { aspect-ratio: .76; max-height: min(48svh, 320px); }
   .official-key-cards:not(.is-dual) .official-key-preview { height: min(56svh, 360px); }
-  .official-key-cards:not(.is-dual) .official-key-frame { height: 100%; }
   .official-key-card-header { padding: 9px 8px 8px; }
   .official-key-card-header strong { font-size: .61rem; }
   .official-key-card-header a { font-size: .54rem; }
@@ -1698,8 +1701,8 @@ body.gabarito-modal-open { overflow: hidden; }
   body.quiz-active .alt-circle-row { margin-bottom: 14px; }
   body.quiz-active .quiz-nav-simples { margin-top: auto; }
 
-  /* Em dois dias, cada PDF continua legível e pode ser ampliado com um toque. */
-  .official-key-cards.is-dual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Em dois dias, os PDFs ficam empilhados e legíveis em telas estreitas. */
+  .official-key-cards.is-dual { grid-template-columns: minmax(0, 1fr); }
   .official-key-cards.is-dual .official-key-preview { aspect-ratio: .76; max-height: min(48svh, 320px); }
 }
 

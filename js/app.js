@@ -738,6 +738,10 @@ function gerarRelatorioFinal() {
 }
 
 function renderizarGabaritosOficiais() {
+  if (observadorPreviaDocumento) {
+    observadorPreviaDocumento.disconnect();
+    observadorPreviaDocumento = null;
+  }
   const gabaritos = config.modoCorrecao === 'dois'
     ? [config.gabaritosPorDia && config.gabaritosPorDia[1], config.gabaritosPorDia && config.gabaritosPorDia[2]]
     : [config.gabarito];
@@ -769,7 +773,7 @@ function renderizarListaDocumentosOficiais(containerId, gabaritos, propriedadeAr
         <a href="${arquivo}" target="_blank" rel="noopener noreferrer">Abrir ${tipoDocumento.toLowerCase()} <span aria-hidden="true">↗</span></a>
       </header>
       <div class="official-key-preview">
-        <iframe class="official-key-frame" src="${arquivo}#view=FitH" title="${tituloDocumento}" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <div class="official-key-canvas-host" data-pdf-preview data-pdf-url="${arquivo}" role="img" aria-label="Prévia da primeira página de ${tituloDocumento}"></div>
         <button type="button" class="official-key-preview-trigger" aria-label="Ampliar ${tipoDocumento.toLowerCase()}: ${gabarito.nome}">
           <span>Ampliar ${tipoDocumento.toLowerCase()} <span aria-hidden="true">↗</span></span>
         </button>
@@ -778,6 +782,7 @@ function renderizarListaDocumentosOficiais(containerId, gabaritos, propriedadeAr
     const gatilho = card.querySelector('.official-key-preview-trigger');
     gatilho.addEventListener('click', () => abrirGabarito(arquivo, tituloDocumento, gatilho));
     container.appendChild(card);
+    agendarPreviaDocumento(arquivo, card.querySelector('[data-pdf-preview]'));
   });
 
   if (!selecionados.length) {
@@ -788,33 +793,53 @@ function renderizarListaDocumentosOficiais(containerId, gabaritos, propriedadeAr
   }
 }
 
+let observadorPreviaDocumento = null;
+
+function agendarPreviaDocumento(pdfUrl, container) {
+  if (!container || !window.renderPDFPage) return;
+  if (!('IntersectionObserver' in window)) {
+    window.renderPDFPage(pdfUrl, 1, container);
+    return;
+  }
+  if (!observadorPreviaDocumento) {
+    observadorPreviaDocumento = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        observadorPreviaDocumento.unobserve(entry.target);
+        window.renderPDFPage(entry.target.dataset.pdfUrl, 1, entry.target);
+      });
+    }, { rootMargin: '300px 0px' });
+  }
+  observadorPreviaDocumento.observe(container);
+}
+
 let gatilhoGabaritoAtivo = null;
 
 function abrirGabarito(pdfUrl, nome, gatilho) {
   const modal = document.getElementById('gabaritoLightbox');
-  const frame = document.getElementById('gabaritoLightboxFrame');
+  const page = document.getElementById('gabaritoLightboxPage');
   const titulo = document.getElementById('gabaritoLightboxTitle');
   const link = document.getElementById('gabaritoLightboxOpen');
-  if (!modal || !frame || !titulo || !link) return;
+  if (!modal || !page || !titulo || !link) return;
 
   gatilhoGabaritoAtivo = gatilho || document.activeElement;
   titulo.textContent = nome;
   link.href = pdfUrl;
-  frame.title = `Visualização ampliada: ${nome}`;
-  frame.src = `${pdfUrl}#view=FitH`;
+  page.setAttribute('aria-label', `Página do documento: ${nome}`);
   modal.classList.remove('hidden');
   document.body.classList.add('gabarito-modal-open');
+  window.requestAnimationFrame(() => window.renderPDFPage?.(pdfUrl, 1, page));
   modal.querySelector('.gabarito-lightbox-close').focus();
 }
 
 function fecharGabarito() {
   const modal = document.getElementById('gabaritoLightbox');
-  const frame = document.getElementById('gabaritoLightboxFrame');
+  const page = document.getElementById('gabaritoLightboxPage');
   if (!modal || modal.classList.contains('hidden')) return;
 
   modal.classList.add('hidden');
   document.body.classList.remove('gabarito-modal-open');
-  if (frame) frame.src = 'about:blank';
+  if (page) window.clearPDFPage?.(page);
   if (gatilhoGabaritoAtivo && document.contains(gatilhoGabaritoAtivo)) gatilhoGabaritoAtivo.focus();
   gatilhoGabaritoAtivo = null;
 }
