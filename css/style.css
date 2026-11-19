@@ -108,6 +108,30 @@ html, body {
 .cover-screen.is-leaving .capa-copy { opacity: 0; transform: translateY(20px) scale(.98); filter: blur(8px); }
 .cover-screen.is-leaving .capa-visual { opacity: 0; transform: translateY(-14px) scale(1.025); filter: blur(8px); }
 
+@media (max-width: 600px) {
+  /* No celular, revela a próxima tela por transform, sem animar um clip-path gigante. */
+  .page-transition-layer {
+    clip-path: none;
+    transform: translate3d(0, 100%, 0);
+    background: linear-gradient(145deg, #2563eb, #0b1323);
+    transition: transform 300ms cubic-bezier(.2, .75, .25, 1), opacity 180ms ease;
+  }
+  .page-transition-layer.is-expanding { clip-path: none; transform: translate3d(0, 0, 0); }
+  .page-transition-layer.is-clearing { opacity: 0; transform: translate3d(0, -100%, 0); }
+  .page-transition-layer.is-expanding, .page-transition-layer.is-clearing { will-change: transform, opacity; }
+
+  .cover-screen.is-leaving .capa-copy,
+  .cover-screen.is-leaving .capa-visual {
+    filter: none;
+    transition: opacity 220ms ease, transform 280ms cubic-bezier(.2, .75, .25, 1);
+  }
+  .cover-screen.is-leaving .capa-copy { transform: translate3d(0, -10px, 0); }
+  .cover-screen.is-leaving .capa-visual { transform: translate3d(0, 10px, 0); }
+
+  .app-header, .main-wrapper { transition: opacity 220ms ease, transform 280ms cubic-bezier(.2, .75, .25, 1); }
+  .page-entering { filter: none; transform: translate3d(0, 10px, 0); }
+}
+
 .app-header, .main-wrapper {
   transition: opacity 560ms ease, transform 560ms cubic-bezier(.2, .75, .25, 1), filter 560ms ease;
 }

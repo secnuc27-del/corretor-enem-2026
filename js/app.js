@@ -33,6 +33,9 @@ function irParaSelecao() {
   const camada = document.getElementById('pageTransitionLayer');
   const botao = capa.querySelector('.btn-iniciar-hero');
   const movimentoReduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const celular = window.matchMedia('(max-width: 600px)').matches;
+  const duracaoEntrada = celular ? 300 : 720;
+  const duracaoSaida = celular ? 340 : 500;
 
   const abrirSelecao = () => {
     capa.classList.add('hidden');
@@ -63,7 +66,7 @@ function irParaSelecao() {
         camada.style.removeProperty('--origin-y');
         botao.disabled = false;
         transicaoEmAndamento = false;
-      }, 500);
+      }, duracaoSaida);
     } else {
       if (camada) camada.classList.remove('is-expanding', 'is-clearing');
       botao.disabled = false;
@@ -83,7 +86,7 @@ function irParaSelecao() {
   camada.style.setProperty('--origin-x', `${areaBotao.left + areaBotao.width / 2}px`);
   camada.style.setProperty('--origin-y', `${areaBotao.top + areaBotao.height / 2}px`);
   requestAnimationFrame(() => camada.classList.add('is-expanding'));
-  window.setTimeout(abrirSelecao, 720);
+  window.setTimeout(abrirSelecao, duracaoEntrada);
 }
 function voltarParaCapa() {
   document.body.classList.remove('selection-active');
