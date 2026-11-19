@@ -1459,6 +1459,7 @@ body.gabarito-modal-open { overflow: hidden; }
 @media (max-width: 680px) {
   #resultadoScreen .result-card { margin: 12px auto 30px; padding: 24px 18px; border-radius: 20px; }
   #resultadoScreen .result-layout { grid-template-columns: minmax(0, 1fr); }
+  #resultadoScreen .official-keys-panel { order: -1; }
   .result-area-grid { grid-template-columns: 1fr; }
   .area-stat-name { max-width: 76%; }
   .score-display-box { padding: 18px; }
@@ -1655,6 +1656,57 @@ body.gabarito-modal-open { overflow: hidden; }
 
   button, a { touch-action: manipulation; }
   button:focus-visible, a:focus-visible, summary:focus-visible { outline-offset: 3px; }
+
+  /* A tela de questão usa a altura visível do celular, sem deixar uma faixa vazia abaixo do cartão. */
+  body.quiz-active #mainContentWrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: none;
+    min-height: 100vh;
+    min-height: 100svh;
+    margin: 0;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  }
+  body.quiz-active #quizScreen {
+    display: flex;
+    flex: 1 0 auto;
+    align-items: stretch;
+    justify-content: stretch;
+    width: 100%;
+    min-height: 0;
+  }
+  body.quiz-active .quiz-corretor-card {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    min-height: 100%;
+    margin: 0;
+    padding: 18px 14px 14px;
+    border-radius: 18px;
+  }
+  body.quiz-active .quiz-mini-track { margin-bottom: 18px; }
+  body.quiz-active .q-centro-box {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: 12px;
+    padding-top: 5px;
+    padding-bottom: 15px;
+  }
+  body.quiz-active .alt-circle-row { margin-bottom: 14px; }
+  body.quiz-active .quiz-nav-simples { margin-top: auto; }
+
+  /* Em dois dias, cada PDF continua legível e pode ser ampliado com um toque. */
+  .official-key-cards.is-dual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .official-key-cards.is-dual .official-key-preview { aspect-ratio: .76; max-height: min(48svh, 320px); }
+}
+
+@supports (min-height: 100dvh) {
+  @media (max-width: 600px) {
+    body.quiz-active #mainContentWrapper { min-height: 100dvh; }
+  }
 }
 
 @media (max-width: 360px) {

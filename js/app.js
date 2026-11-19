@@ -38,6 +38,7 @@ function irParaSelecao() {
     capa.classList.add('hidden');
     capa.classList.remove('is-leaving');
     document.body.classList.add('selection-active');
+    document.body.classList.remove('quiz-active');
     cabecalho.classList.remove('hidden');
     conteudo.classList.remove('hidden');
     cabecalho.classList.remove('page-entering');
@@ -86,6 +87,7 @@ function irParaSelecao() {
 }
 function voltarParaCapa() {
   document.body.classList.remove('selection-active');
+  document.body.classList.remove('quiz-active');
   document.getElementById('capaInicialScreen').classList.remove('hidden');
   document.getElementById('mainHeader').classList.add('hidden');
   document.getElementById('mainContentWrapper').classList.add('hidden');
@@ -97,6 +99,7 @@ function voltarParaSelecao() {
   document.getElementById('quizScreen').classList.add('hidden');
   document.getElementById('configScreen').classList.remove('hidden');
   document.body.classList.add('selection-active');
+  document.body.classList.remove('quiz-active');
   agendarFundoCadernos();
   const mainHeader = document.getElementById('mainHeader');
   if (mainHeader) mainHeader.classList.remove('hidden');
@@ -413,6 +416,7 @@ function iniciarCorrecao() {
   document.getElementById('configScreen').classList.add('hidden');
   document.getElementById('resultadoScreen').classList.add('hidden');
   document.body.classList.remove('selection-active');
+  document.body.classList.add('quiz-active');
   document.getElementById('quizScreen').classList.remove('hidden');
 
   const mainHeader = document.getElementById('mainHeader');
@@ -619,6 +623,7 @@ function voltarQuestao() {
 
 function concluirCorrecao() {
   document.body.classList.remove('selection-active');
+  document.body.classList.remove('quiz-active');
   document.getElementById('quizScreen').classList.add('hidden');
   document.getElementById('resultadoScreen').classList.remove('hidden');
   const mainHeader = document.getElementById('mainHeader');
